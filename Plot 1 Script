@@ -1,0 +1,29 @@
+# verify landing directory for source data exists 
+if (!file.exists('source data')) {
+  dir.create('source data')
+}
+# verify data set exists; if not, create folder; download zip file and unzip contents
+if (!file.exists('source data/household_power_consumption.txt')) {
+file.url<-'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
+download.file(file.url,destfile='source data/household_power_consumption.zip')
+unzip('source data/household_power_consumption.zip',exdir='source data',overwrite=TRUE)
+}
+# read the txt file and filter data to 2 days (1-Feb-2007 & 2-Feb-2007)
+data <- read.csv("source data/household_power_consumption.txt", header = T, sep = ';',
+na.strings = "?", nrows = 2075259, check.names = F, stringsAsFactors = F,
+comment.char = "", quote = '\"')
+
+data$Date <- as.Date(data$Date, format = "%d/%m/%Y")
+data <- subset(data, subset = (Date >= "2007-02-01" & Date <= "2007-02-02"))
+
+# Converting dates
+datetime <- paste(as.Date(data$Date), data$Time)
+data$Datetime <- as.POSIXct(datetime)
+
+# Generate Graph 1
+png(filename='source data/plot1.png', width=480, height=480, units='px')
+hist(data$Global_active_power, col = "red", main = paste("Global Active Power"), xlab = "Global Active Power (kilowatts)")
+dev.off()
+
+# Remove dataframe from memory
+rm(datetime,data)
